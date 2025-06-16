@@ -1,18 +1,21 @@
+
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-const app = express();
-const authRoutes = require("./routes/auth"); // <-- This is correct
+const authRoutes = require("./routes/auth");
+const taskRoutes = require("./routes/task");
 
-// Middleware
+const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use(authRoutes); // Mount auth routes
+app.use("/auth", authRoutes);
+app.use("/task", taskRoutes);
 
-// Optionally: app.use("/task", require("./routes/task"));
+const PORT = process.env.PORT || 5000;
 
-// Server listen
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
+

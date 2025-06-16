@@ -1,17 +1,16 @@
-import { useState, useEffect } from "react";
+import './App.css';
+import React, { useState, useEffect } from "react";
 
 const API_BASE = "http://localhost:3001";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [authMode, setAuthMode] = useState("login"); // or 'register'
+  const [authMode, setAuthMode] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState("");
+  const [newTaskTitle, setNewTaskTitle] = useState("");
 
-  // Fetch tasks if user is logged in
   useEffect(() => {
     if (user) {
       fetch(`${API_BASE}/task`)
@@ -21,21 +20,25 @@ function App() {
     }
   }, [user]);
 
-  // Handle Login/Register
   const handleAuth = async () => {
-    const res = await fetch(`${API_BASE}/${authMode}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/auth/${authMode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      setUser(data.user || data); // Depends on API response shape
-      setUsername("");
-      setPassword("");
-    } else {
-      alert(data.error || "Auth failed");
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user || data);
+        setUsername("");
+        setPassword("");
+      } else {
+        alert(data.error || "Auth failed");
+      }
+    } catch (err) {
+      console.error("Auth request failed:", err.message);
+      alert("Unable to connect to server. Make sure the backend is running.");
     }
   };
 
@@ -44,102 +47,134 @@ function App() {
     setTasks([]);
   };
 
-  // Add new task
-const handleAdd = async () => {
-  if (!newTask.trim()) return;
+  const handleAdd = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/task`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTaskTitle,
+          completed: false,
+          user_id: user.id, // Use the actual logged-in user's ID
+        }),
+      });
 
-  const USER_ID = user.id; // dynamically use logged-in user
+      if (!res.ok) throw new Error('Failed to add task');
 
-  const res = await fetch(`${API_BASE}/task`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: newTask,
-      completed: false,
-      user_id: USER_ID,
-    }),
-  });
-
-  const added = await res.json();
-  setTasks([...tasks, added]);
-  setNewTask("");
-};
-
-
-
+      const data = await res.json();
+      setTasks([...tasks, data]);
+      setNewTaskTitle('');
+    } catch (err) {
+      console.error('Add task error:', err.message);
+      alert('Error adding task');
+    }
+  };
 
   const handleToggle = async (id, current) => {
-    const res = await fetch(`${API_BASE}/task/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completed: !current }),
-    });
-    if (res.ok) {
-      setTasks(tasks.map((task) =>
-        task.id === id ? { ...task, completed: !current } : task
-      ));
+    try {
+      const res = await fetch(`${API_BASE}/task/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: !current }),
+      });
+      if (res.ok) {
+        setTasks(tasks.map((task) =>
+          task.id === id ? { ...task, completed: !current } : task
+        ));
+      }
+    } catch (err) {
+      console.error("Toggle task error:", err.message);
     }
   };
 
   const handleDelete = async (id) => {
-    const res = await fetch(`${API_BASE}/task/${id}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
-      setTasks(tasks.filter((task) => task.id !== id));
+    try {
+      const res = await fetch(`${API_BASE}/task/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setTasks(tasks.filter((task) => task.id !== id));
+      }
+    } catch (err) {
+      console.error("Delete task error:", err.message);
     }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto", padding: "1rem" }}>
-      <h1>TODO List</h1>
+    <div className="container">
+      <h1 className="title">TODO List</h1>
 
       {!user ? (
-        <div>
+        <div className="auth-box">
           <h2>{authMode === "login" ? "Login" : "Register"}</h2>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
+            className="input"
           />
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
+            className="input"
           />
-          <button onClick={handleAuth}>
+          <button onClick={handleAuth} className="btn">
             {authMode === "login" ? "Login" : "Register"}
           </button>
           <p>
             {authMode === "login" ? "No account?" : "Already have an account?"}{" "}
-            <button onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}>
+            <button
+              onClick={() =>
+                setAuthMode(authMode === "login" ? "register" : "login")
+              }
+              className="link-btn"
+            >
               {authMode === "login" ? "Register" : "Login"}
             </button>
           </p>
         </div>
       ) : (
-        <div>
-          <p>Welcome, {user.username} <button onClick={handleLogout}>Logout</button></p>
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="New task..."
-          />
-          <button onClick={handleAdd}>Add</button>
+        <div className="task-box">
+          <p>
+            Welcome, <strong>{user.username}</strong>{" "}
+            <button onClick={handleLogout} className="btn logout-btn">
+              Logout
+            </button>
+          </p>
+          <div className="add-task">
+            <input
+              type="text"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Enter task"
+            />
+            <button onClick={handleAdd} className="btn add-btn">
+              Add
+            </button>
+          </div>
 
-          <ul>
+          <ul className="task-list">
             {tasks.map((task) => (
-              <li key={task.id}>
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  onChange={() => handleToggle(task.id, task.completed)}
-                />
-                {task.title}
-                <button onClick={() => handleDelete(task.id)}>❌</button>
+              <li key={task.id} className="task-item">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => handleToggle(task.id, task.completed)}
+                  />
+                  <span className={task.completed ? "completed" : ""}>
+                    {task.title}
+                  </span>
+                </label>
+                <button
+                  onClick={() => handleDelete(task.id)}
+                  className="btn delete-btn"
+                >
+                  ❌
+                </button>
               </li>
             ))}
           </ul>

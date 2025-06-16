@@ -1,5 +1,5 @@
 ### Register a new user
-POST http://localhost:5000/register
+POST http://localhost:3000/register
 Content-Type: application/json
 
 {
@@ -10,7 +10,7 @@ Content-Type: application/json
 ###
 
 ### Login with that user
-POST http://localhost:5000/login
+POST http://localhost:3000/login
 Content-Type: application/json
 
 {
@@ -21,12 +21,12 @@ Content-Type: application/json
 ###
 
 ### Get all tasks
-GET http://localhost:5000/task
+GET http://localhost:3000/task
 
 ###
 
 ### Create a new task (replace `user_id` with actual registered user id)
-POST http://localhost:5000/task
+POST http://localhost:3000/task
 Content-Type: application/json
 
 {
@@ -39,12 +39,12 @@ Content-Type: application/json
 ###
 
 ### Get one task by ID
-GET http://localhost:5000/task/1
+GET http://localhost:3000/task/1
 
 ###
 
 ### Update a task by ID
-PUT http://localhost:5000/task/1
+PUT http://localhost:3000/task/1
 Content-Type: application/json
 
 {
@@ -56,4 +56,4 @@ Content-Type: application/json
 ###
 
 ### Delete a task by ID
-DELETE http://localhost:5000/task/1
+DELETE http://localhost:3000/task/1
