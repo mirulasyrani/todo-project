@@ -1,8 +1,8 @@
 import './App.css';
 import React, { useState, useEffect } from "react";
 
-const API_BASE = "todo-project-production-db01.up.railway.app";
-
+// ✅ Correct backend URL with protocol
+const API_BASE = "https://todo-project-production-db01.up.railway.app";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -56,7 +56,7 @@ function App() {
         body: JSON.stringify({
           title: newTaskTitle,
           completed: false,
-          user_id: user.id, // Use the actual logged-in user's ID
+          user_id: user.id,
         }),
       });
 
