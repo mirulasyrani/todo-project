@@ -8,7 +8,7 @@ const app = express();
 
 // Allow all origins (you can restrict this to your frontend domain if preferred)
 app.use(cors({
-  origin: 'https://todo-project-6hn.pages.dev/',
+  origin: 'https://todo-project-6hn.pages.dev',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
