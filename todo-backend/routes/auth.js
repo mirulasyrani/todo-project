@@ -1,53 +1,64 @@
 const express = require("express");
-const bcrypt = require("bcrypt");
-const pool = require("../db");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const pool = require("../db"); // This matches your db.js location
 
 const router = express.Router();
 
-// Register new user
+// POST /auth/register - Register new user
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const hashed = await bcrypt.hash(password, 10);
+    // Check if user already exists
+    const existingUser = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
 
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert new user
     const result = await pool.query(
       "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username",
-      [username, hashed]
+      [username, hashedPassword]
     );
 
-    res.json(result.rows[0]); // Returns { id, username }
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Registration error:", err.message);
-    res.status(500).json({ error: "Registration failed" });
+    console.error("Register error:", err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// Login existing user
+// POST /auth/login - Authenticate user
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
+
     const user = result.rows[0];
 
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // Create JWT token (optional)
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    if (!passwordMatch) {
-      return res.status(401).json({ error: "Incorrect password" });
-    }
-
-    res.json({
-      message: "Login successful",
-      user: { id: user.id, username: user.username },
-    });
+    // Send user data and token
+    res.json({ user: { id: user.id, username: user.username }, token });
   } catch (err) {
     console.error("Login error:", err.message);
-    res.status(500).json({ error: "Login failed" });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
