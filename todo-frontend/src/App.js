@@ -1,7 +1,6 @@
 import './App.css';
 import React, { useState, useEffect } from "react";
 
-// ✅ Correct backend URL with protocol
 const API_BASE = "https://todo-project-production-db01.up.railway.app";
 
 function App() {
@@ -14,9 +13,17 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      fetch(`${API_BASE}/task`)
+      fetch(`${API_BASE}/task?user_id=${user.id}`)
         .then((res) => res.json())
-        .then((data) => setTasks(data))
+        .then((data) => {
+          // ✅ Ensure data is an array
+          if (Array.isArray(data)) {
+            setTasks(data);
+          } else {
+            console.error("Tasks data is not an array:", data);
+            setTasks([]);
+          }
+        })
         .catch((err) => console.error("Error fetching tasks:", err));
     }
   }, [user]);

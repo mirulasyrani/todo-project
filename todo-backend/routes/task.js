@@ -3,17 +3,26 @@ const pool = require("../db");
 
 const router = express.Router();
 
-// Get all tasks (optionally filtered by user_id)
+// ✅ Get all tasks (optionally filtered by user_id)
 router.get("/", async (req, res) => {
+  const { user_id } = req.query;
   try {
-    const result = await pool.query("SELECT * FROM tasks ORDER BY id DESC");
+    let result;
+    if (user_id) {
+      result = await pool.query(
+        "SELECT * FROM tasks WHERE user_id = $1 ORDER BY id DESC",
+        [user_id]
+      );
+    } else {
+      result = await pool.query("SELECT * FROM tasks ORDER BY id DESC");
+    }
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Get one task by ID
+// Get one task by ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -29,7 +38,7 @@ router.get("/:id", async (req, res) => {
 
 // Add new task
 router.post("/", async (req, res) => {
-  const { title, completed, user_id } = req.body;
+  const { title, completed = false, user_id } = req.body;
   try {
     const result = await pool.query(
       "INSERT INTO tasks (title, completed, user_id) VALUES ($1, $2, $3) RETURNING *",
