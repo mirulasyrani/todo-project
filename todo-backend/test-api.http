@@ -1,0 +1,59 @@
+### Register a new user
+POST http://localhost:5000/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "testpassword"
+}
+
+###
+
+### Login with that user
+POST http://localhost:5000/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "testpassword"
+}
+
+###
+
+### Get all tasks
+GET http://localhost:5000/task
+
+###
+
+### Create a new task (replace `user_id` with actual registered user id)
+POST http://localhost:5000/task
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread",
+  "status": "pending"
+}
+
+###
+
+### Get one task by ID
+GET http://localhost:5000/task/1
+
+###
+
+### Update a task by ID
+PUT http://localhost:5000/task/1
+Content-Type: application/json
+
+{
+  "title": "Buy groceries and fruits",
+  "description": "Milk, eggs, bread, bananas",
+  "status": "in progress"
+}
+
+###
+
+### Delete a task by ID
+DELETE http://localhost:5000/task/1
