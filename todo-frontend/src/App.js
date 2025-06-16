@@ -1,7 +1,8 @@
 import './App.css';
 import React, { useState, useEffect } from "react";
 
-const API_BASE = "https://todo-project-production.up.railway.app";
+const API_BASE = "todo-project-production-db01.up.railway.app";
+
 
 function App() {
   const [user, setUser] = useState(null);
