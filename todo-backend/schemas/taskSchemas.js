@@ -1,6 +1,5 @@
 const { z } = require("zod");
 
-// Schema for updating a task
 const updateTaskSchema = z.object({
   body: z.object({
     completed: z.boolean(),
